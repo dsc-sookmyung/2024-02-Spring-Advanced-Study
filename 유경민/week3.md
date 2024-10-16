@@ -369,17 +369,91 @@ public class AppConfig {
 - 콜백 인터페이스의 메소드에는 보통 파라미터가 있다. 
 
 ### 템플릿/콜백의 작업 흐름
+
 ![](https://velog.velcdn.com/images/ykky2115/post/44104569-1c10-4ced-bba5-02520ad98502/image.png)
+
 콜백은 보통 클라이언트에 의해 제공되거나, 클라이언트가 정의하는 경우가 많다. 
 클라이언트는 콜백을 생성하고 템플릿을 자기 일을 하다가 참조 정보를 가지고 콜백 오브젝트의 메소드를 호출한다. 
 콜백의 일이 끝나서 템플릿에게 결과를 돌려주면 템플릿은 마저 자기 일을 한다. 
 
 ### 콜백의 재활용
 
-### 템플릿/콜백의 응용
+익명 내부 클래스가 계속 중첩되면 코드가 답답해 보일 수 있다. 
+그래서 독립 메소드(executeSql)로 추출할 수도 있다. 
+그런데 앞서 deleteAll을 독립 메소드로 했더니만... 확장성이 좋지 않아서 전략 패턴을 취했던 적이 있다. 
 
-### 템플릿/콜백의 재설계
+왜 다시 돌아온 것일까.............
+
+차이점은 독립된 메서드에서 delete from users를 직접 넣어서 확장할 수 없는 것이고, 메서드의 파라미터에 String query를 넣음으로써 query에 입력값에 따라 다양한 행동을 할 수 있게함으로써 확장성을 얻었다. 
+
+### 콜백과 템플릿의 결합
+위에 분리된 executeSql()은 모든 Dao가 쓸 수 있도록 JdbcContext라는 컨텍스트 메서드에 넣는다. 
+
+
+## 제네릭스를 이용한 콜백 인터페이스 
+
+제너릭스를 이용하면 타입에 의존하지 않는 유연한 인터페이스를 만들 수 있다. 여러 타입의 데이터 처리를 하나의 콜백 인터페이스로 할 수 있다. (코드의 재사용성 극대화!)
+
+```
+// 제너릭스를 사용하는 콜백 인터페이스
+public interface RowMapper<T> {
+    T mapRow(ResultSet rs, int rowNum) throws SQLException;
+}
+
+// User 객체를 반환하는 콜백 구현
+public class UserRowMapper implements RowMapper<User> {
+    @Override
+    public User mapRow(ResultSet rs, int rowNum) throws SQLException {
+        User user = new User();
+        user.setId(rs.getInt("id"));
+        user.setName(rs.getString("name"));
+        return user;
+    }
+}
+
+// Order 객체를 반환하는 콜백 구현
+public class OrderRowMapper implements RowMapper<Order> {
+    @Override
+    public Order mapRow(ResultSet rs, int rowNum) throws SQLException {
+        Order order = new Order();
+        order.setId(rs.getInt("id"));
+        order.setTotal(rs.getDouble("total"));
+        return order;
+    }
+}
+```
+
+짜잔.
+
 
 ## 스프링의 JdbcTemplate
 해당 목차에서 스프링이 제공하는 템플릿/콜백 기술을 살핀다. 
 
+</br>
+
+**제공 기능**
+
+1. update() - DB에 데이터를 삽입,수정,삭제하는 DML 작업을 처리한다.
+2. queryForInt() - 현재는 deprecatede되었다. 단일 정수 값을 반환할 때 사용하였다.
+3. queryForObject() - 단일 행(row)의 결과를 하나의 객체로 반환하는 sql 쿼리에 사용한다. 
+4. query() - 다수의 행(rows)을 처리하기 위해 주로 RowMapper와 함께 사용한다.
+
+
+</br>
+
+## 스프링의 RestTemplate
+template가 나온 김에 같이 정리해본다. 
+JdbcTemplate가 sql에서 DML(INSERT, DELETE, UPDATE)을 처리한다면 HTTP 메서드(GET, POST, DELETE etc.)를 처리해주는 템플릿이 RestTemplate이다.
+기능은 다음과 같다.
+
+</br>
+
+**제공 기능**
+
+1. getForObject() - HTTP GET 요청을 보내고, 서버로부터 받은 응답을 객체로 변환하여 반환한다. 주로 단일 객체를 반환받는데 사용한다.
+2. getForEntity() - HTTP GET 요청을 보내고, ResponseEntity<T> 형태로 반환받고 HTTP 상태 코드와 헤더 정보도 포함된다.
+3. postForObject() - 1번의 POST 버전
+4. postForEntity() - 2번의 POST 버전
+5. exchange() - HTTP 요청의 모든 세부 사항을 설정할 수 있다. 요청과 응답을 세부적으로 설정하는 유연한 메서드.
+6. delete() - DELETE 요청으로 서버에서 리소스를 삭제할 때 사용.
+7. put() - PUT 요청으로 서버의 리소스를 수정할 때 사용.

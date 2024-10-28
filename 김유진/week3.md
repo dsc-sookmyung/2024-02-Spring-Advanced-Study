@@ -1228,7 +1228,7 @@ private PreparedStatement makeStatement(Connection c) throws SQLException {
 
 ✨ 이렇게 **범용적으로 만들어진 템플릿/콜백을 이용**하면 **파일을 라인 단위로 처리하는 다양한 기능을 편리하게 구현**할 수 있다.
 
-## 3.6 스프리의 JdbcTemplate
+## 3.6 스프링의 JdbcTemplate
 
 ✨ 스프링이 제공하는 템플릿/콜백 기술을 살펴보자.
 

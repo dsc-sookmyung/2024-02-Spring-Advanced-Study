@@ -6,6 +6,8 @@
 
 🤔 UserDao 코드는 아직 예외상황에 대한 처리와 관련한 문제점이 남아있다!
 
+<br>
+
 ### 3.1.1 예외처리 기능을 갖춘 DAO
 
 - JDBC 코드에는 반드시 지켜야할 원칙이 있음
@@ -124,6 +126,8 @@
     🤔 하지만! 여전히 뭔가 아쉬움이 남아 있다.
 
 
+<br>
+
 ## 3.2 변하는 것과 변하지 않는 것
 
 ### 3.2.1 JDBC try/catch/finally 코드의 문제점
@@ -213,7 +217,8 @@ private PreparedStatement makeStatement(Connection c) throws SQLException {
 - 개방 폐쇠 원칙을 잘 지키면서 유연하고 확장성이 뛰어난 것
 - 오브젝트를 아예 둘로 분리하고 클래스 레벨에서는 인터페이스를 통해서만 의존하도록 만드는 것
 
-![image.png](https://prod-files-secure.s3.us-west-2.amazonaws.com/38982410-c588-45fc-bad3-9a3b55c91a9f/610468cd-f586-4992-8916-6dc7eada9eb9/image.png)
+![image](https://github.com/user-attachments/assets/22d2f091-52ad-4eb5-a15e-bc6000034026)
+
 
 - 좌측의 Context의 `contextMethod()`에서 일정한 구조를 가지고 동작하다가,
 - **특정 확장 기능**은 Strategy 인터페이스를 통해 외부의 독립된 전략 클래스에 위임함.
@@ -226,7 +231,8 @@ private PreparedStatement makeStatement(Connection c) throws SQLException {
     4. 예외가 발생하면 이를 다시 메소드 밖으로 던지기
     5. 모든 경우에 만들어진 PreparedStatement와 Connection을 적절히 닫아주기
 
-⇒ 전략 패턴에서 말하는 전: 두 번째 작업에서 사용하는 “**PreparedStatement를 만들어주는 외부 기능**”
+⇒ 전략 패턴에서 말하는 전략: 
+- 두 번째 작업에서 사용하는 “**PreparedStatement를 만들어주는 외부 기능**”
 
 - 이 기능을 인터페이스로 만들고 PreparedStatement 생성 전략을 호출하면 됨.
 
@@ -281,7 +287,8 @@ private PreparedStatement makeStatement(Connection c) throws SQLException {
 
 💡**이를 해결하기 위해 전략 패턴의 실제적인 사용 방법을 더 살펴보자!**
 
-![image.png](https://prod-files-secure.s3.us-west-2.amazonaws.com/38982410-c588-45fc-bad3-9a3b55c91a9f/6923c9cb-1538-4fec-a3a2-101773730a6a/image.png)
+![image (1)](https://github.com/user-attachments/assets/d46e6e07-f64f-4b61-ae9f-6c049947c5c9)
+
 
 - Context가 어떤 전략을 사용하게 할 것인가는 Client가 결정하는 게 일반적임.
 - Client가 구체적인 전략을 선택하고 오브젝트로 만들어서 Context로 전달는 것.
@@ -338,6 +345,7 @@ private PreparedStatement makeStatement(Connection c) throws SQLException {
 
 ➡️ 이 구조를 기반으로 UserDao 코드의 **본격적인 개선**을 시작할 수 있다.
 
+<br>
 
 ## 3.3 JDBC 전략 패턴의 최적화
 
@@ -349,6 +357,8 @@ private PreparedStatement makeStatement(Connection c) throws SQLException {
 - **동작 방법**
     - DAO 메소드들은 **바뀌는 부분**(PreparedStatement 생성)을 준비해서 `jdbcContextWithStatementStrategy()`에 전달.
     - 고정된 흐름과 바뀌는 로직을 분리해 **코드를 깔끔하게** 만들고 **재사용성**을 높임.
+
+<br>
 
 ### 3.3.1 전략 클래스의 추가 정보
 
@@ -408,6 +418,7 @@ private PreparedStatement makeStatement(Connection c) throws SQLException {
         }
         ```
         
+<br>
 
 ### 3.3.2 전략과 클라이언트의 동거
 
@@ -500,6 +511,8 @@ private PreparedStatement makeStatement(Connection c) throws SQLException {
     }
     ```
 
+<br>
+
 ## 3.4 컨텍스트와 DI
 
 ### 3.4.1 JdbcContext의 분리
@@ -585,8 +598,10 @@ private PreparedStatement makeStatement(Connection c) throws SQLException {
     
 - JdbcContext가 추가된 의존 관계를 나타내주는 클래스 다이어그램
     
-    ![image.png](https://prod-files-secure.s3.us-west-2.amazonaws.com/38982410-c588-45fc-bad3-9a3b55c91a9f/4d7b5b25-af75-42f4-a0c3-1333503269b5/image.png)
+    ![image (2)](https://github.com/user-attachments/assets/609321d1-9e29-4cd2-a299-084a47735967)
+
     
+<br>
 
 ### 3.4.2 JdbcContext의 특별한 DI
 
@@ -640,7 +655,8 @@ private PreparedStatement makeStatement(Connection c) throws SQLException {
         
         - UserDao는 직접 DataSource 빈을 필요로 하지 않지만, JdbcContext에 대한 DI 작업에 사용할 용도로 제공받는 것임.
         
-        ![image.png](https://prod-files-secure.s3.us-west-2.amazonaws.com/38982410-c588-45fc-bad3-9a3b55c91a9f/17f4ebc5-87da-4d42-98ba-0e767dc662c1/image.png)
+        ![image (3)](https://github.com/user-attachments/assets/5429aaea-312c-4434-95c5-be2bfb2d43e2)
+
         
 
 - 스프링 설정파일에 userDao와 dataSource 두 개만 빈으로 정의.
@@ -674,6 +690,8 @@ private PreparedStatement makeStatement(Connection c) throws SQLException {
 - 상황에 따라 적절하다고 판단되는 방법을 선택해서 사용하자!
 - 분명한 이유와 근거를 설명할 수 없다면 차라리 인터페이스를 만들어서 평범한 DI 구조로 만드는 게 나을 수도 있다.
 
+<br>
+
 ## 3.5 템플릿과 콜백
 
 ✨ 템플릿/콜백 패턴
@@ -683,6 +701,8 @@ private PreparedStatement makeStatement(Connection c) throws SQLException {
 📌 템플릿 - 전략 패턴의 컨텍스트
 
 📌 콜백 - 익명 내부 클래스로 만들어지는 오브젝트
+
+<br>
 
 ### 3.5.1 템플릿/콜백의 동작원리
 
@@ -703,7 +723,8 @@ private PreparedStatement makeStatement(Connection c) throws SQLException {
 
 - 템플릿/콜백 패턴의 일반적인 작업 흐름도
     
-    ![image.png](https://prod-files-secure.s3.us-west-2.amazonaws.com/38982410-c588-45fc-bad3-9a3b55c91a9f/4f30b609-6a6b-4463-be1f-9027386148e1/image.png)
+    ![image (4)](https://github.com/user-attachments/assets/8c61f947-1802-41a0-b592-34f0b0486d17)
+
     
     - **클라이언트의 역할**: 클라이언트는 콜백 객체를 만들고, 콜백이 참조할 정보를 제공한다. 콜백은 클라이언트가 템플릿 메소드를 호출할 때 파라미터로 전달된다.
     - **템플릿의 역할**: 템플릿은 작업 흐름을 진행하며, 필요한 시점에 콜백 메소드를 호출해 작업을 수행시킨다. 콜백은 템플릿과 클라이언트 정보를 사용해 작업을 처리하고 결과를 돌려준다.
@@ -726,6 +747,8 @@ private PreparedStatement makeStatement(Connection c) throws SQLException {
 - 템플릿과 클라이언트가 메소드 단위인 것이 특징.
 - JdbcContext의 workWithStatementStrategy() 템플릿은 리턴 값이 없는 단순한 구조
 - 템플릿의 작업 흐름이 더 복잡한 경우 → 한 번 이상 콜백 호출 or 여러 개의 콜백을 클라이언트로부터 받아서 사용
+
+<br>
 
 ### 3.5.2 편리한 콜백의 재활용
 
@@ -810,6 +833,8 @@ private PreparedStatement makeStatement(Connection c) throws SQLException {
     
     - UserDao 메소드에서도 jdbcContext를 통해 executeSql() 메소드를 호출하도록 수정해야 함.
     - 이렇게 코드를 변경하면 JdbcContext 안에 클라이언트와 템플릿, 콜백이 모두 공존하며 동작하는 구조가 된다.
+
+<br>
 
 ### 3.5.3 템플릿/콜백의 응용
 
@@ -1203,7 +1228,7 @@ private PreparedStatement makeStatement(Connection c) throws SQLException {
 
 ✨ 이렇게 **범용적으로 만들어진 템플릿/콜백을 이용**하면 **파일을 라인 단위로 처리하는 다양한 기능을 편리하게 구현**할 수 있다.
 
-## 3.3 템플릿과 콜백
+## 3.6 스프리의 JdbcTemplate
 
 ✨ 스프링이 제공하는 템플릿/콜백 기술을 살펴보자.
 
@@ -1224,6 +1249,8 @@ public class UserDao {
     }
 }
 ```
+
+<br>
 
 ### 3.6.1 update()
 
@@ -1288,6 +1315,8 @@ public class UserDao {
 
 ⇒ JdbcContext를 이용하던 UserDao 메소드를 모두 JdbcTemplate으로 변경했다.
 
+<br>
+
 ### 3.6.2 queryForInt()
 
 😮 아직 템플릿/콜백 방식을 적용하지 않았던 메소드에 JdbcTemplate을 적용해보자!
@@ -1336,6 +1365,8 @@ public class UserDao {
     ```
     
 
+<br>
+
 ### 3.6.3 queryForObject()
 
 🤔 get() 메소드에 JdbcTemplate을 적용해보자!
@@ -1374,6 +1405,8 @@ public class UserDao {
     ```
     
     - 예외상황을 처리하기 위해 특별히 해줄 것은 없다.
+
+<br>
 
 ### 3.6.4 query()
 
@@ -1481,6 +1514,7 @@ public class UserDao {
     ```
     
 
+<br>
 
 ### 3.6.5 재사용 가능한 콜백의 분리
 
@@ -1592,3 +1626,4 @@ public class UserDao {
     - User의 프로퍼티와 User 테이블의 필드 이름이 바뀌거나 매핑 방식이 바뀌는 경우에 UserDao 코드를 수정하지 않고도 매핑정보 변경이 가능해진다.
 2. DAO 메소드에서 사용하는 SQL 문장을 외부 리소스에 담고 이를 읽어와 사용하게 하는 방법
     - DB 테이블의 이름이나 필드 이름을 변경하거나 SQL 쿼리를 최적화해야 할 때도 UserDao 코드에는 손을 댈 필요가 없다.
+

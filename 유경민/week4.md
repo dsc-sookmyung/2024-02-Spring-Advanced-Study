@@ -153,11 +153,32 @@ public void add() throws DuplicatedUserIdException {
  
  앞서 언체크 예외를 권장한다고 하였다. 그런데 SQLException는 체크 예외로서 복구가 불가능한 것으로 위장한다. 그래서 JdbcTemplate는 제공하는 기능에 기본적으로 throws DataAccessException를 하여 SQLException을 wrapping 한다. 
 
+#### SQLException의 행방을 찾아서..혹은 찾지 말긔
+
+거진 99프로의 SQLException은 코드 레벨에서 복구할 방법이 없다.
+따라서 예외처리 전략을 적용해 불필요한 throws 선언이 반복적으로 등장하지 않도록 런타임 예외로 전환해줘야 함.
+
+JdbcTemplate은 이 예외 처리 전략에 따른다.
+
+- 스프링은 JdbcTemplate의 템플릿과 콜백 안에서 발생하는 모든 SQLException을 런타임 예외인 DataAccessException으로 랩핑한다.
+- JdbcTemplate을 사용하는 UserDao 메서드에선 꼭 필요한 경우에만 런타임 예외인 DataAccessException을 잡아서 처리하고, 그 외의 경우엔 무시한다.
+- JdbcTemplate의 update( ), queryForInt( ), query( ) 와 같은 메서드 선언을 잘 살펴보면 throws DataAccessException이 선언되어 있다.
+- 그러나 DataAccessException은 런타임 예외이므로 해당 메서드들을 사용하는 메서드에서 이를 잡거나 다시 던질 의무는 없다.
+
 throws Exception으로 모든 예외를 통틀수도있지만 이 방법은 다소 무책임하다.!!!
 
 </br>
 
- 
+## 예외 처리 전략
+
+#### 런타임 예외의 보편화
+
+자바 엔터프라이즈 서버 환경에서는 수많은 사용자가 동시에 요청을 보내고 각 요청이 독립적인 작업으로 취급된다. 
+하나의 요청을 처리하는 중에 예외가 발생하면 해당 작업만 중단시킬 수 있음. 
+또한 서버의 특정 계층에서 예외가 발생했을 때 작업을 일시 중지하고 사용자와 바로 커뮤니케이션하면서 예외상황을 복구 불가능함. 
+
+따라서 대응 불가능한 체크 예외라면 빨리 런타임 예외로 전환 후 던지는 게 유리하다.
+
 ## 애플리케이션 예외
  
 애플리케이션 자체의 로직에 의해 의도적으로 발생시키고 반드시 catch문을 통하여 어떻게든 무엇이든 예외 처리를 요구하는 방식.
